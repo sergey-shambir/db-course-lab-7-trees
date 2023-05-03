@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -o errexit
+
+exec docker exec \
+  --interactive \
+  --tty \
+  --user "${USER}:www-data" \
+  tree-of-life-app /bin/bash

@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+#
+# Environment variable parameters:
+# - USER_ID: developer's unix user id
+# - USER_NAME: developer's unix user name
+
+set -o errexit
+
+readonly PROJECT_ROOT=/var/www
+
+add_local_user() {
+  if [[ -n "$USER_ID" && -n "$USER_NAME" ]]; then
+    local USER_HOME_DIR=/home/$USER_NAME/
+
+    useradd --shell /bin/bash -u "$USER_ID" -o -c "" -m "$USER_NAME" || true # ignore if already exists
+    adduser "$USER_NAME" sudo
+    echo "${USER_NAME} ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers
+
+    bash -c "echo 'umask g+w' >> $USER_HOME_DIR/.bashrc"
+    chown -R ${USER_NAME}:${USER_NAME} ${USER_HOME_DIR}
+  fi
+}
+
+set_folder_permissions() {
+  chgrp www-data -R "$PROJECT_ROOT"
+}
+
+enable_php_xdebug() {
+  configure_xdebug
+  docker-php-ext-enable xdebug
+}
+
+configure_xdebug() {
+  cat >"$PHP_INI_DIR/conf.d/30-xdebug.ini" <<EOL
+[xdebug]
+; Enables debugging from host machine "host.docker.internal"
+xdebug.client_host = host.docker.internal
+xdebug.client_port = 9000
+
+; Fix issue with low recursion depth limit in xdebug
+xdebug.max_nesting_level = 2048
+EOL
+}
+
+echo "Configuring local development environment..."
+add_local_user
+set_folder_permissions
+enable_php_xdebug
+
+exec php-fpm
