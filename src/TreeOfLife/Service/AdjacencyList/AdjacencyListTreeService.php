@@ -43,7 +43,7 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
           (
             SELECT
               t.node_id,
-              NULL AS parent_id
+              0 AS parent_id
             FROM tree_of_life_adjacency_list t
             WHERE t.node_id = :id
             UNION ALL
@@ -62,7 +62,7 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
         FROM cte
           INNER JOIN tree_of_life_node tn ON tn.id = cte.node_id
         SQL;
-        $rows = $this->connection->execute($query)->fetchAll(\PDO::FETCH_ASSOC, [':id' => $id]);
+        $rows = $this->connection->execute($query, [':id' => $id])->fetchAll(\PDO::FETCH_ASSOC);
 
         return self::hydrateTree($rows);
     }

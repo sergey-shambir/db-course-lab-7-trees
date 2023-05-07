@@ -5,6 +5,7 @@ namespace Tests\App\TreeOfLife\AdjacencyList;
 
 use App\TreeOfLife\IO\TreeOfLifeLoader;
 use App\TreeOfLife\Model\TreeOfLife;
+use App\TreeOfLife\Model\TreeOfLifeNode;
 use App\TreeOfLife\Service\AdjacencyList\AdjacencyListTreeService;
 use Tests\App\Common\AbstractDatabaseTestCase;
 
@@ -26,26 +27,39 @@ class AdjacencyListTreeTest extends AbstractDatabaseTestCase
         $this->service = new AdjacencyListTreeService($this->getConnection());
     }
 
-    public function testSaveTree(): void
+    public function testSaveAndLoadTree(): void
     {
         $root = $this->loadTreeOfLife();
         $this->service->saveTree($root);
         $root2 = $this->service->getTree();
         $this->assertEqualTrees($root, $root2);
+
+        $subTree = $this->service->getSubTree(14695);
+        $this->assertEqualNodes(new TreeOfLifeNode(14695, 'none', false, 0), $subTree);
+        $this->assertEqualNodes(new TreeOfLifeNode(14696, 'Pallenopsis', false, 0), $subTree->getChild(0));
+        $this->assertEqualNodes(new TreeOfLifeNode(14697, 'Callipallenidae', false, 0), $subTree->getChild(1));
     }
 
-    private function assertEqualTrees(TreeOfLife $expectedRoot, TreeOfLife $root): void
+    private function assertEqualNodes(TreeOfLifeNode $expected, TreeOfLifeNode $node): void
     {
-        $this->assertEquals($expectedRoot->getId(), $root->getId());
-        $this->assertEquals($expectedRoot->getName(), $root->getName());
-        $this->assertEquals($expectedRoot->isExtinct(), $root->isExtinct());
-        $this->assertEquals($expectedRoot->getConfidence(), $root->getConfidence());
-        if ($expectedRoot->getParent())
+        $this->assertEquals($expected->getId(), $node->getId());
+        $this->assertEquals($expected->getName(), $node->getName());
+        $this->assertEquals($expected->isExtinct(), $node->isExtinct());
+        $this->assertEquals($expected->getConfidence(), $node->getConfidence());
+    }
+
+    private function assertEqualTrees(TreeOfLife $expected, TreeOfLife $root): void
+    {
+        $this->assertEquals($expected->getId(), $root->getId());
+        $this->assertEquals($expected->getName(), $root->getName());
+        $this->assertEquals($expected->isExtinct(), $root->isExtinct());
+        $this->assertEquals($expected->getConfidence(), $root->getConfidence());
+        if ($expected->getParent())
         {
-            $this->assertEquals($expectedRoot->getParent()->getId(), $root->getParent()->getId());
+            $this->assertEquals($expected->getParent()->getId(), $root->getParent()->getId());
         }
 
-        $expectedChildren = $expectedRoot->getChildren();
+        $expectedChildren = $expected->getChildren();
         $children = $root->getChildren();
         $this->assertCount(count($expectedChildren), $children);
 

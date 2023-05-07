@@ -29,6 +29,16 @@ class TreeOfLife extends TreeOfLifeNode
         return $this->parent;
     }
 
+    public function getChild(int $index): TreeOfLife
+    {
+        $child = $this->children[$index] ?? null;
+        if (!$child)
+        {
+            throw new \OutOfBoundsException("No child with index $index");
+        }
+        return $child;
+    }
+
     /**
      * @return TreeOfLife[]
      */
