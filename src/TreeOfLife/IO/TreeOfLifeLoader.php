@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\TreeOfLife\IO;
 
-use App\TreeOfLife\Data\TreeOfLifeNode;
+use App\TreeOfLife\Model\TreeOfLife;
 use Generator;
 use LogicException;
 use RuntimeException;
@@ -16,13 +16,13 @@ class TreeOfLifeLoader
     ];
 
     private array $nodes = [];
-    private ?TreeOfLifeNode $treeRoot;
+    private ?TreeOfLife $treeRoot;
 
     public function loadNodesCsv(string $csvPath): void
     {
         foreach ($this->iterateCsvFileRows($csvPath) as $row)
         {
-            $node = new TreeOfLifeNode((int)$row['node_id'], $row['node_name'], (bool)$row['extinct'], (int)$row['confidence']);
+            $node = new TreeOfLife((int)$row['node_id'], $row['node_name'], (bool)$row['extinct'], (int)$row['confidence']);
             $this->nodes[$node->getId()] = $node;
         }
 
@@ -43,20 +43,20 @@ class TreeOfLifeLoader
             $parent->addChild($child);
         }
 
-        $roots = array_values(array_filter($this->nodes, static fn(TreeOfLifeNode $node) => !$node->getParent()));
+        $roots = array_values(array_filter($this->nodes, static fn(TreeOfLife $node) => !$node->getParent()));
 
         // Проверка на наличие множества корневых узлов.
         // Проверять на отсутствие корней не требуется, потому что алгоритм загрузки исключает подобную ситуацию.
         if (count($roots) > 1)
         {
-            $rootIds = array_map(static fn(TreeOfLifeNode $node) => $node->getId(), $roots);
+            $rootIds = array_map(static fn(TreeOfLife $node) => $node->getId(), $roots);
             throw new RuntimeException('Tree has multiple roots: ' . implode(', ', $rootIds));
         }
 
         $this->treeRoot = $roots[0];
     }
 
-    public function getTreeRoot(): TreeOfLifeNode
+    public function getTreeRoot(): TreeOfLife
     {
         if (!$this->treeRoot)
         {
@@ -98,7 +98,7 @@ class TreeOfLifeLoader
         }
     }
 
-    private function getNode(int $id): TreeOfLifeNode
+    private function getNode(int $id): TreeOfLife
     {
         $node = $this->nodes[$id];
         if (!$node)
