@@ -10,7 +10,7 @@ final class ConnectionProvider
         static $connection = null;
         if ($connection === null)
         {
-            $dsn = self::getEnvString('APP_DATABASE_DSN', 'mysql:dbname=tree_of_life;host=tree-of-life-db');
+            $dsn = self::getEnvString('APP_DATABASE_DSN', 'mysql:dbname=tree_of_life;host=localhost');
             $user = self::getEnvString('APP_DATABASE_USER', 'tree-of-life-app');
             $password = self::getEnvString('APP_DATABASE_PASSWORD', 'A0h3dIzdy8');
             $connection = new Connection($dsn, $user, $password);
