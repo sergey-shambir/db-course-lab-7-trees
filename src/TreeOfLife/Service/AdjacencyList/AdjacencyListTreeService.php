@@ -7,6 +7,7 @@ use App\Common\Database\Connection;
 use App\TreeOfLife\Data\TreeOfLifeNodeData;
 use App\TreeOfLife\Database\TreeOfLifeServiceInterface;
 use App\TreeOfLife\Model\TreeOfLifeNode;
+use App\TreeOfLife\Model\TreeOfLifeNodeDataInterface;
 
 class AdjacencyListTreeService implements TreeOfLifeServiceInterface
 {
@@ -18,6 +19,23 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
     {
         $this->connection = $connection;
     }
+
+    public function getNode(int $id): ?TreeOfLifeNodeData
+    {
+        $query = <<<SQL
+        SELECT
+          tn.id,
+          tn.name,
+          tn.extinct,
+          tn.confidence
+        FROM tree_of_life_node tn
+        WHERE tn.id = :id
+        SQL;
+        $row = $this->connection->execute($query, [':id' => $id])->fetch(\PDO::FETCH_ASSOC);
+
+        return $row ? self::hydrateTreeNodeData($row) : null;
+    }
+
 
     public function getTree(): TreeOfLifeNode
     {
@@ -144,32 +162,79 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
         foreach (array_chunk($allNodes, self::INSERT_BATCH_SIZE) as $nodes)
         {
             $this->insertIntoNodeTable($nodes);
-            $this->insertIntoTreeTable($nodes);
+            $this->insertIntoTreeTable($this->transformToAdjacencyListData($nodes));
         }
     }
 
     public function addNode(TreeOfLifeNodeData $node, int $parentId): void
     {
-        // TODO: Implement addNode() method.
-        throw new \LogicException(__METHOD__ . ' not implemented');
+        $this->insertIntoNodeTable([$node]);
+        $this->insertIntoTreeTable([new AdjacencyListData($node->getId(), $parentId)]);
     }
 
     public function moveNode(int $id, int $newParentId): void
     {
-        // TODO: Implement moveNode() method.
-        throw new \LogicException(__METHOD__ . ' not implemented');
+        $query = <<<SQL
+UPDATE tree_of_life_adjacency_list
+SET
+  parent_id = :new_parent_id
+WHERE node_id = :id
+SQL;
+        $params = [
+            ':id' => $id,
+            ':new_parent_id' => $newParentId,
+        ];
+
+        $this->connection->execute($query, $params);
     }
 
     public function deleteSubTree(int $id): void
     {
-        // TODO: Implement deleteSubTree() method.
-        throw new \LogicException(__METHOD__ . ' not implemented');
+        $query = <<<SQL
+        WITH RECURSIVE cte AS
+          (
+            SELECT
+              t.node_id,
+              0 AS parent_id
+            FROM tree_of_life_adjacency_list t
+            WHERE t.node_id = :id
+            UNION ALL
+            SELECT
+              t.node_id,
+              t.parent_id
+            FROM tree_of_life_adjacency_list t
+              INNER JOIN cte ON t.parent_id = cte.node_id
+          )
+        DELETE tn
+        FROM tree_of_life_node tn
+          INNER JOIN cte ON tn.id = cte.node_id
+        SQL;
+        $this->connection->execute($query, [':id' => $id]);
+    }
+
+    /**
+     * @param TreeOfLifeNode[] $nodes
+     * @return AdjacencyListData[]
+     */
+    private function transformToAdjacencyListData(array $nodes): array
+    {
+        $results = [];
+        foreach ($nodes as $node)
+        {
+            $parent = $node->getParent();
+            if ($parent !== null)
+            {
+                $results[] = new AdjacencyListData($node->getId(), $parent->getId());
+            }
+        }
+
+        return $results;
     }
 
     /**
      * Записывает узлы в таблицу с информацией об узлах.
      *
-     * @param TreeOfLifeNode[] $nodes
+     * @param TreeOfLifeNodeDataInterface[] $nodes
      * @return void
      */
     private function insertIntoNodeTable(array $nodes): void
@@ -193,12 +258,11 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
     /**
      * Записывает узлы в таблицу с информацией о структуре дерева
      *
-     * @param TreeOfLifeNode[] $nodes
+     * @param AdjacencyListData[] $nodes
      * @return void
      */
     private function insertIntoTreeTable(array $nodes): void
     {
-        $nodes = array_filter($nodes, static fn(TreeOfLifeNode $node) => $node->getParent() !== null);
         if (count($nodes) === 0)
         {
             return;
@@ -212,8 +276,8 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
         $params = [];
         foreach ($nodes as $node)
         {
-            $params[] = $node->getId();
-            $params[] = $node->getParent()->getId();
+            $params[] = $node->getNodeId();
+            $params[] = $node->getParentId();
         }
         $this->connection->execute($query, $params);
     }

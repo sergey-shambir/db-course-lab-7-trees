@@ -9,6 +9,14 @@ use App\TreeOfLife\Model\TreeOfLifeNode;
 interface TreeOfLifeServiceInterface
 {
     /**
+     * Возвращает данные отдельного узла
+     *
+     * @param int $id
+     * @return TreeOfLifeNodeData|null
+     */
+    public function getNode(int $id): ?TreeOfLifeNodeData;
+
+    /**
      * Возвращает всё дерево целиком
      *
      * @return TreeOfLifeNode

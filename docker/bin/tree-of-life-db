@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -o errexit
+
+exec docker exec \
+  --interactive \
+  --tty \
+  tree-of-life-db mysql -utree-of-life-app -pA0h3dIzdy8 tree_of_life

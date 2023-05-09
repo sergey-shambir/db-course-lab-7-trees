@@ -17,8 +17,14 @@ class NestedSetTreeService implements TreeOfLifeServiceInterface
         $this->connection = $connection;
     }
 
+    public function getNode(int $id): ?TreeOfLifeNodeData
+    {
+        // TODO: Implement getNode() method.
+    }
+
     public function getTree(): TreeOfLifeNode
     {
+        // TODO: Implement getTree() method.
     }
 
     public function getSubTree(int $id): TreeOfLifeNode

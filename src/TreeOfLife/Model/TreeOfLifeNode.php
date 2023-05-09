@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\TreeOfLife\Model;
 
-final class TreeOfLifeNode
+final class TreeOfLifeNode implements TreeOfLifeNodeDataInterface
 {
     private int $id;
     private string $name;
