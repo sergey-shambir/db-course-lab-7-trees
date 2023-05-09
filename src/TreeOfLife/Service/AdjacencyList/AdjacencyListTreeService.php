@@ -101,16 +101,38 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
         return array_map(static fn(array $row) => self::hydrateTreeNodeData($row), $rows);
     }
 
-    public function getParentNode(int $id): ?TreeOfLifeNode
+    public function getParentNode(int $id): ?TreeOfLifeNodeData
     {
-        // TODO: Implement getParentNode() method.
-        throw new \LogicException(__METHOD__ . ' not implemented');
+        $query = <<<SQL
+        SELECT
+          tn.id,
+          tn.name,
+          tn.extinct,
+          tn.confidence
+        FROM tree_of_life_node tn
+          INNER JOIN tree_of_life_adjacency_list t on tn.id = t.parent_id
+        WHERE t.node_id = :id
+        SQL;
+        $row = $this->connection->execute($query, [':id' => $id])->fetch(\PDO::FETCH_ASSOC);
+
+        return $row ? self::hydrateTreeNodeData($row) : null;
     }
 
     public function getChildren(int $id): array
     {
-        // TODO: Implement getChildren() method.
-        throw new \LogicException(__METHOD__ . ' not implemented');
+        $query = <<<SQL
+        SELECT
+          tn.id,
+          tn.name,
+          tn.extinct,
+          tn.confidence
+        FROM tree_of_life_node tn
+          INNER JOIN tree_of_life_adjacency_list t on tn.id = t.node_id
+        WHERE t.parent_id = :id
+        SQL;
+        $rows = $this->connection->execute($query, [':id' => $id])->fetchAll(\PDO::FETCH_ASSOC);
+
+        return array_map(static fn(array $row) => self::hydrateTreeNodeData($row), $rows);
     }
 
     public function saveTree(TreeOfLifeNode $root): void
@@ -126,7 +148,7 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
         }
     }
 
-    public function addNode(TreeOfLifeNode $node, int $parentId): void
+    public function addNode(TreeOfLifeNodeData $node, int $parentId): void
     {
         // TODO: Implement addNode() method.
         throw new \LogicException(__METHOD__ . ' not implemented');

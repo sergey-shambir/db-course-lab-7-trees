@@ -35,18 +35,43 @@ class AdjacencyListTreeTest extends AbstractDatabaseTestCase
 
         // Act
         $root2 = $this->service->getTree();
+
         // Assert
         $this->assertEqualTrees($root, $root2);
+    }
+
+    public function testGetDescendants(): void
+    {
+        // Arrange
+        $root = $this->loadTreeOfLife();
+        $this->service->saveTree($root);
 
         // Act
         $subTree = $this->service->getSubTree(14695);
+
         // Assert
         $this->assertTreeNode(new TreeOfLifeNodeData(14695, 'none', false, 0), $subTree);
         $this->assertTreeNode(new TreeOfLifeNodeData(14696, 'Pallenopsis', false, 0), $subTree->getChild(0));
         $this->assertTreeNode(new TreeOfLifeNodeData(14697, 'Callipallenidae', false, 0), $subTree->getChild(1));
+
+        // Act
+        $children = $this->service->getChildren(2535);
+
+        // Assert
+        $this->assertCount(4, $children);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2536, 'Arachnida', false, 0), $children[0]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2537, 'Eurypterida', true, 0), $children[1]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2538, 'Xiphosura', false, 0), $children[2]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2539, 'Pycnogonida', false, 0), $children[3]);
+
+        // Act
+        $children = $this->service->getChildren(14697);
+
+        // Assert
+        $this->assertCount(0, $children);
     }
 
-    public function testGetNodePath(): void
+    public function testGetAncestors(): void
     {
         // Arrange
         $root = $this->loadTreeOfLife();
@@ -72,6 +97,16 @@ class AdjacencyListTreeTest extends AbstractDatabaseTestCase
         $this->assertTreeNodeData(new TreeOfLifeNodeData(3, 'Eukaryotes', false, 0), $path[12]);
         $this->assertTreeNodeData(new TreeOfLifeNodeData(1, 'Life on Earth', false, 0), $path[13]);
 
+        // Act
+        $parentNode = $this->service->getParentNode(2539);
+        // Assert
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2535, 'Chelicerata', false, 0), $parentNode);
+
+        // Act
+        $parentNode = $this->service->getParentNode(2535);
+
+        // Assert
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2469, 'Arthropoda', false, 0), $parentNode);
     }
 
     private function assertTreeNode(TreeOfLifeNodeData $expected, TreeOfLifeNode $node): void

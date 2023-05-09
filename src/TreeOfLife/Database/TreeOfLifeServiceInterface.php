@@ -35,15 +35,15 @@ interface TreeOfLifeServiceInterface
      * Возвращает родителя узла, т.е. его ближайшего предка
      *
      * @param int $id
-     * @return TreeOfLifeNode|null
+     * @return TreeOfLifeNodeData|null
      */
-    public function getParentNode(int $id): ?TreeOfLifeNode;
+    public function getParentNode(int $id): ?TreeOfLifeNodeData;
 
     /**
      * Возвращает список дочерних узлов к узлу, т.е ближайших потомков
      *
      * @param int $id
-     * @return TreeOfLifeNode[]
+     * @return TreeOfLifeNodeData[]
      */
     public function getChildren(int $id): array;
 
@@ -57,14 +57,13 @@ interface TreeOfLifeServiceInterface
 
     /**
      * Добавляет узел к дереву.
-     * При попытке добавить узел, уже содержащий дочерние узлы, бросается InvalidArgumentException
      *
-     * @param TreeOfLifeNode $node
+     * @param TreeOfLifeNodeData $node
      * @param int $parentId
      * @return void
      * @throws \InvalidArgumentException
      */
-    public function addNode(TreeOfLifeNode $node, int $parentId): void;
+    public function addNode(TreeOfLifeNodeData $node, int $parentId): void;
 
     /**
      * Перемещает узел к новому родителю.
