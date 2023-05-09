@@ -6,12 +6,12 @@ require_once(__DIR__ . '/../vendor/autoload.php');
 
 use App\Common\Database\ConnectionProvider;
 use App\TreeOfLife\IO\TreeOfLifeLoader;
-use App\TreeOfLife\Model\TreeOfLife;
+use App\TreeOfLife\Model\TreeOfLifeNode;
 use App\TreeOfLife\Service\AdjacencyList\AdjacencyListTreeService;
 
 const DATA_DIR = __DIR__ . '/../data';
 
-function loadTreeOfLife(string $nodesCsvPath, string $linksCsvPath): TreeOfLife
+function loadTreeOfLife(string $nodesCsvPath, string $linksCsvPath): TreeOfLifeNode
 {
     $loader = new TreeOfLifeLoader();
     $loader->loadNodesCsv($nodesCsvPath);

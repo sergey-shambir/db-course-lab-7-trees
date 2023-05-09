@@ -4,8 +4,9 @@ declare(strict_types=1);
 namespace App\TreeOfLife\Service\AdjacencyList;
 
 use App\Common\Database\Connection;
+use App\TreeOfLife\Data\TreeOfLifeNodeData;
 use App\TreeOfLife\Database\TreeOfLifeServiceInterface;
-use App\TreeOfLife\Model\TreeOfLife;
+use App\TreeOfLife\Model\TreeOfLifeNode;
 
 class AdjacencyListTreeService implements TreeOfLifeServiceInterface
 {
@@ -18,7 +19,7 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
         $this->connection = $connection;
     }
 
-    public function getTree(): TreeOfLife
+    public function getTree(): TreeOfLifeNode
     {
         $query = <<<SQL
         SELECT
@@ -36,7 +37,7 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
         return self::hydrateTree($rows);
     }
 
-    public function getSubTree(int $id): TreeOfLife
+    public function getSubTree(int $id): TreeOfLifeNode
     {
         $query = <<<SQL
         WITH RECURSIVE cte AS
@@ -75,31 +76,32 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
             SELECT
               t.node_id,
               t.parent_id
-            FROM tree_of_life_adjacency_list t
-            WHERE t.node_id = :id
+            FROM tree_of_life_node n
+              LEFT JOIN tree_of_life_adjacency_list t on t.node_id = n.id
+            WHERE
+              n.id = :id
             UNION ALL
             SELECT
-              t.node_id,
+              n.id,
               t.parent_id
-            FROM tree_of_life_adjacency_list t
-              INNER JOIN cte ON t.parent_id = cte.node_id
+            FROM tree_of_life_node n
+              INNER JOIN cte ON n.id = cte.parent_id
+              LEFT JOIN tree_of_life_adjacency_list t on t.node_id = n.id
           )
         SELECT
           tn.id,
           tn.name,
           tn.extinct,
-          tn.confidence,
-          cte.parent_id
+          tn.confidence
         FROM cte
           INNER JOIN tree_of_life_node tn ON tn.id = cte.node_id
         SQL;
-        $rows = $this->connection->execute($query)->fetchAll(\PDO::FETCH_ASSOC, [':id' => $id]);
+        $rows = $this->connection->execute($query, [':id' => $id])->fetchAll(\PDO::FETCH_ASSOC);
 
-        // TODO: Implement getParentNode() method.
-        throw new \LogicException(__METHOD__ . ' not implemented');
+        return array_map(static fn(array $row) => self::hydrateTreeNodeData($row), $rows);
     }
 
-    public function getParentNode(int $id): ?TreeOfLife
+    public function getParentNode(int $id): ?TreeOfLifeNode
     {
         // TODO: Implement getParentNode() method.
         throw new \LogicException(__METHOD__ . ' not implemented');
@@ -111,12 +113,12 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
         throw new \LogicException(__METHOD__ . ' not implemented');
     }
 
-    public function saveTree(TreeOfLife $root): void
+    public function saveTree(TreeOfLifeNode $root): void
     {
         $allNodes = $root->listNodes();
 
         // Вместо записи всех узлов за один запрос делим массив на части.
-        /** @var TreeOfLife[] $nodes */
+        /** @var TreeOfLifeNode[] $nodes */
         foreach (array_chunk($allNodes, self::INSERT_BATCH_SIZE) as $nodes)
         {
             $this->insertIntoNodeTable($nodes);
@@ -124,7 +126,7 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
         }
     }
 
-    public function addNode(TreeOfLife $node, int $parentId): void
+    public function addNode(TreeOfLifeNode $node, int $parentId): void
     {
         // TODO: Implement addNode() method.
         throw new \LogicException(__METHOD__ . ' not implemented');
@@ -145,7 +147,7 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
     /**
      * Записывает узлы в таблицу с информацией об узлах.
      *
-     * @param TreeOfLife[] $nodes
+     * @param TreeOfLifeNode[] $nodes
      * @return void
      */
     private function insertIntoNodeTable(array $nodes): void
@@ -160,7 +162,7 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
         {
             $params[] = $node->getId();
             $params[] = $node->getName();
-            $params[] = (int) $node->isExtinct();
+            $params[] = (int)$node->isExtinct();
             $params[] = $node->getConfidence();
         }
         $this->connection->execute($query, $params);
@@ -169,12 +171,12 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
     /**
      * Записывает узлы в таблицу с информацией о структуре дерева
      *
-     * @param TreeOfLife[] $nodes
+     * @param TreeOfLifeNode[] $nodes
      * @return void
      */
     private function insertIntoTreeTable(array $nodes): void
     {
-        $nodes = array_filter($nodes, static fn(TreeOfLife $node) => $node->getParent() !== null);
+        $nodes = array_filter($nodes, static fn(TreeOfLifeNode $node) => $node->getParent() !== null);
         if (count($nodes) === 0)
         {
             return;
@@ -220,9 +222,9 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
      * Метод предполагает, что в наборе результатов есть ровно один результат с parent_id=null.
      *
      * @param array<array<string,string|null>> $rows
-     * @return TreeOfLife
+     * @return TreeOfLifeNode
      */
-    private static function hydrateTree(array $rows): TreeOfLife
+    private static function hydrateTree(array $rows): TreeOfLifeNode
     {
         $nodesMap = self::hydrateNodesMap($rows);
 
@@ -248,14 +250,14 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
      * Преобразует набор результатов SQL-запроса в словарь, где ключи - ID узлов, а значения - объекты.
      *
      * @param array<array<string,string|null>> $rows
-     * @return TreeOfLife[] - отображает ID узла на узел.
+     * @return TreeOfLifeNode[] - отображает ID узла на узел.
      */
     private static function hydrateNodesMap(array $rows): array
     {
         $nodes = [];
         foreach ($rows as $row)
         {
-            $node = self::hydrateNode($row);
+            $node = self::hydrateTreeNode($row);
             $nodes[$node->getId()] = $node;
         }
         return $nodes;
@@ -265,11 +267,27 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
      * Преобразует один результат SQL-запроса в объект, представляющий узел дерева.
      *
      * @param array<string,string|null> $row
-     * @return TreeOfLife
+     * @return TreeOfLifeNode
      */
-    private static function hydrateNode(array $row): TreeOfLife
+    private static function hydrateTreeNode(array $row): TreeOfLifeNode
     {
-        return new TreeOfLife(
+        return new TreeOfLifeNode(
+            (int)$row['id'],
+            $row['name'],
+            (bool)$row['extinct'],
+            (int)$row['confidence']
+        );
+    }
+
+    /**
+     * Преобразует один результат SQL-запроса в объект, представляющий узел дерева без связей с другими узлами.
+     *
+     * @param array<string,string|null> $row
+     * @return TreeOfLifeNodeData
+     */
+    private static function hydrateTreeNodeData(array $row): TreeOfLifeNodeData
+    {
+        return new TreeOfLifeNodeData(
             (int)$row['id'],
             $row['name'],
             (bool)$row['extinct'],

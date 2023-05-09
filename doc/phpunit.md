@@ -45,4 +45,30 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 Написать первый тест можно по документации: https://docs.phpunit.de/en/8.5/writing-tests-for-phpunit.html
 
-Для запуска тестов используйте команду `vendor/bin/phpunit`
+Для запуска тестов используйте команду:
+
+```bash
+vendor/bin/phpunit
+```
+
+# Отладка тестов в XDebug
+
+Для активации XDebug при выполнении консольных команд можно установить переменные окружения.
+
+В консоли Windows:
+```bash
+set XDEBUG_CONFIG="idekey=123"
+set PHP_IDE_CONFIG=serverName=localhost
+```
+
+В консоли Linux:
+```bash
+export XDEBUG_CONFIG="idekey=123"
+export PHP_IDE_CONFIG=serverName=localhost
+```
+
+После чего запустить тесты:
+
+```bash
+vendor/bin/phpunit
+```

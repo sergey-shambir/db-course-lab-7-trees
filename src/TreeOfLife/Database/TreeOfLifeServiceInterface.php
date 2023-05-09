@@ -3,30 +3,31 @@ declare(strict_types=1);
 
 namespace App\TreeOfLife\Database;
 
-use App\TreeOfLife\Model\TreeOfLife;
+use App\TreeOfLife\Data\TreeOfLifeNodeData;
+use App\TreeOfLife\Model\TreeOfLifeNode;
 
 interface TreeOfLifeServiceInterface
 {
     /**
      * Возвращает всё дерево целиком
      *
-     * @return TreeOfLife
+     * @return TreeOfLifeNode
      */
-    public function getTree(): TreeOfLife;
+    public function getTree(): TreeOfLifeNode;
 
     /**
      * Возвращает ветвь дерева для указанного узла (т.е. поддерево данного узла)
      *
      * @param int $id
-     * @return TreeOfLife
+     * @return TreeOfLifeNode
      */
-    public function getSubTree(int $id): TreeOfLife;
+    public function getSubTree(int $id): TreeOfLifeNode;
 
     /**
-     * Возвращает путь к узлу, т.е. последовательность всех его предков, начиная с корня
+     * Возвращает путь к узлу, т.е. последовательность всех его предков, начиная с корня.
      *
      * @param int $id
-     * @return TreeOfLife[]
+     * @return TreeOfLifeNodeData[]
      */
     public function getNodePath(int $id): array;
 
@@ -34,36 +35,36 @@ interface TreeOfLifeServiceInterface
      * Возвращает родителя узла, т.е. его ближайшего предка
      *
      * @param int $id
-     * @return TreeOfLife|null
+     * @return TreeOfLifeNode|null
      */
-    public function getParentNode(int $id): ?TreeOfLife;
+    public function getParentNode(int $id): ?TreeOfLifeNode;
 
     /**
      * Возвращает список дочерних узлов к узлу, т.е ближайших потомков
      *
      * @param int $id
-     * @return TreeOfLife[]
+     * @return TreeOfLifeNode[]
      */
     public function getChildren(int $id): array;
 
     /**
      * Сохраняет всё дерево целиком.
      *
-     * @param TreeOfLife $root
+     * @param TreeOfLifeNode $root
      * @return void
      */
-    public function saveTree(TreeOfLife $root): void;
+    public function saveTree(TreeOfLifeNode $root): void;
 
     /**
      * Добавляет узел к дереву.
      * При попытке добавить узел, уже содержащий дочерние узлы, бросается InvalidArgumentException
      *
-     * @param TreeOfLife $node
+     * @param TreeOfLifeNode $node
      * @param int $parentId
      * @return void
      * @throws \InvalidArgumentException
      */
-    public function addNode(TreeOfLife $node, int $parentId): void;
+    public function addNode(TreeOfLifeNode $node, int $parentId): void;
 
     /**
      * Перемещает узел к новому родителю.

@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Tests\App\TreeOfLife\AdjacencyList;
 
+use App\TreeOfLife\Data\TreeOfLifeNodeData;
 use App\TreeOfLife\IO\TreeOfLifeLoader;
-use App\TreeOfLife\Model\TreeOfLife;
 use App\TreeOfLife\Model\TreeOfLifeNode;
 use App\TreeOfLife\Service\AdjacencyList\AdjacencyListTreeService;
 use Tests\App\Common\AbstractDatabaseTestCase;
@@ -29,18 +29,52 @@ class AdjacencyListTreeTest extends AbstractDatabaseTestCase
 
     public function testSaveAndLoadTree(): void
     {
+        // Arrange
         $root = $this->loadTreeOfLife();
         $this->service->saveTree($root);
+
+        // Act
         $root2 = $this->service->getTree();
+        // Assert
         $this->assertEqualTrees($root, $root2);
 
+        // Act
         $subTree = $this->service->getSubTree(14695);
-        $this->assertEqualNodes(new TreeOfLifeNode(14695, 'none', false, 0), $subTree);
-        $this->assertEqualNodes(new TreeOfLifeNode(14696, 'Pallenopsis', false, 0), $subTree->getChild(0));
-        $this->assertEqualNodes(new TreeOfLifeNode(14697, 'Callipallenidae', false, 0), $subTree->getChild(1));
+        // Assert
+        $this->assertTreeNode(new TreeOfLifeNodeData(14695, 'none', false, 0), $subTree);
+        $this->assertTreeNode(new TreeOfLifeNodeData(14696, 'Pallenopsis', false, 0), $subTree->getChild(0));
+        $this->assertTreeNode(new TreeOfLifeNodeData(14697, 'Callipallenidae', false, 0), $subTree->getChild(1));
     }
 
-    private function assertEqualNodes(TreeOfLifeNode $expected, TreeOfLifeNode $node): void
+    public function testGetNodePath(): void
+    {
+        // Arrange
+        $root = $this->loadTreeOfLife();
+        $this->service->saveTree($root);
+
+        // Act
+        $path = $this->service->getNodePath(14697);
+
+        // Assert
+        $this->assertCount(14, $path);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(14697, 'Callipallenidae', false, 0), $path[0]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(14695, 'none', false, 0), $path[1]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2539, 'Pycnogonida', false, 0), $path[2]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2535, 'Chelicerata', false, 0), $path[3]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2469, 'Arthropoda', false, 0), $path[4]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2468, 'none', false, 0), $path[5]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2467, 'Ecdysozoa', false, 0), $path[6]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2459, 'Bilateria', false, 0), $path[7]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2458, 'none', false, 0), $path[8]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2374, 'Animals', false, 0), $path[9]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2373, 'none', false, 0), $path[10]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(2372, 'Opisthokonts', false, 0), $path[11]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(3, 'Eukaryotes', false, 0), $path[12]);
+        $this->assertTreeNodeData(new TreeOfLifeNodeData(1, 'Life on Earth', false, 0), $path[13]);
+
+    }
+
+    private function assertTreeNode(TreeOfLifeNodeData $expected, TreeOfLifeNode $node): void
     {
         $this->assertEquals($expected->getId(), $node->getId());
         $this->assertEquals($expected->getName(), $node->getName());
@@ -48,7 +82,15 @@ class AdjacencyListTreeTest extends AbstractDatabaseTestCase
         $this->assertEquals($expected->getConfidence(), $node->getConfidence());
     }
 
-    private function assertEqualTrees(TreeOfLife $expected, TreeOfLife $root): void
+    private function assertTreeNodeData(TreeOfLifeNodeData $expected, TreeOfLifeNodeData $node): void
+    {
+        $this->assertEquals($expected->getId(), $node->getId());
+        $this->assertEquals($expected->getName(), $node->getName());
+        $this->assertEquals($expected->isExtinct(), $node->isExtinct());
+        $this->assertEquals($expected->getConfidence(), $node->getConfidence());
+    }
+
+    private function assertEqualTrees(TreeOfLifeNode $expected, TreeOfLifeNode $root): void
     {
         $this->assertEquals($expected->getId(), $root->getId());
         $this->assertEquals($expected->getName(), $root->getName());
@@ -69,7 +111,7 @@ class AdjacencyListTreeTest extends AbstractDatabaseTestCase
         }
     }
 
-    private function loadTreeOfLife(): TreeOfLife
+    private function loadTreeOfLife(): TreeOfLifeNode
     {
         $loader = new TreeOfLifeLoader();
         $loader->loadNodesCsv(self::NODES_CSV_PATH);

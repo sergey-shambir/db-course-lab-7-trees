@@ -5,7 +5,7 @@ namespace App\TreeOfLife\Service\NestedSet;
 
 use App\Common\Database\Connection;
 use App\TreeOfLife\Database\TreeOfLifeServiceInterface;
-use App\TreeOfLife\Model\TreeOfLife;
+use App\TreeOfLife\Model\TreeOfLifeNode;
 
 class NestedSetTreeService implements TreeOfLifeServiceInterface
 {
@@ -16,11 +16,11 @@ class NestedSetTreeService implements TreeOfLifeServiceInterface
         $this->connection = $connection;
     }
 
-    public function getTree(): TreeOfLife
+    public function getTree(): TreeOfLifeNode
     {
     }
 
-    public function getSubTree(int $id): TreeOfLife
+    public function getSubTree(int $id): TreeOfLifeNode
     {
         // TODO: Implement getSubTree() method.
     }
@@ -30,7 +30,7 @@ class NestedSetTreeService implements TreeOfLifeServiceInterface
         // TODO: Implement getNodePath() method.
     }
 
-    public function getParentNode(int $id): ?TreeOfLife
+    public function getParentNode(int $id): ?TreeOfLifeNode
     {
         // TODO: Implement getParentNode() method.
     }
@@ -40,12 +40,12 @@ class NestedSetTreeService implements TreeOfLifeServiceInterface
         // TODO: Implement getChildren() method.
     }
 
-    public function saveTree(TreeOfLife $root): void
+    public function saveTree(TreeOfLifeNode $root): void
     {
         // TODO: Implement saveTree() method.
     }
 
-    public function addNode(TreeOfLife $node, int $parentId): void
+    public function addNode(TreeOfLifeNode $node, int $parentId): void
     {
         // TODO: Implement addNode() method.
     }
