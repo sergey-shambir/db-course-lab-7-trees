@@ -133,7 +133,7 @@ final class TreeOfLifeNode implements TreeOfLifeNodeDataInterface
     }
 
     /**
-     * Обходит узлы дерева или поддерева в сперва глубину, начиная с заданного узла.
+     * Обходит узлы дерева или поддерева в глубину, начиная с заданного узла.
      *
      * @param callable $callback
      * @return void

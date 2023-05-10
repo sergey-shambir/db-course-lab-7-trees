@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Tests\App\TreeOfLife\AdjacencyList;
 
 use App\TreeOfLife\Data\TreeOfLifeNodeData;
+use App\TreeOfLife\Database\TreeOfLifeServiceInterface;
 use App\TreeOfLife\IO\TreeOfLifeLoader;
 use App\TreeOfLife\Model\TreeOfLifeNode;
 use App\TreeOfLife\Model\TreeOfLifeNodeDataInterface;
@@ -16,7 +17,7 @@ class AdjacencyListTreeTest extends AbstractDatabaseTestCase
     private const NODES_CSV_PATH = self::DATA_DIR . '/treeoflife_nodes.csv';
     private const LINKS_CSV_PATH = self::DATA_DIR . '/treeoflife_links.csv';
 
-    private AdjacencyListTreeService $service;
+    private TreeOfLifeServiceInterface $service;
 
     protected function setUp(): void
     {
@@ -184,10 +185,6 @@ class AdjacencyListTreeTest extends AbstractDatabaseTestCase
         $this->assertTreeNode(new TreeOfLifeNodeData(2536, 'Arachnida', false, 0), $children[0]);
         $this->assertTreeNode(new TreeOfLifeNodeData(2538, 'Xiphosura', false, 0), $children[1]);
         $this->assertTreeNode(new TreeOfLifeNodeData(2539, 'Pycnogonida', false, 0), $children[2]);
-
-        // Arrange
-        $root = $this->loadTreeOfLife();
-        $this->service->saveTree($root);
     }
 
     private function assertTreeNode(TreeOfLifeNodeDataInterface $expected, TreeOfLifeNodeDataInterface $node): void

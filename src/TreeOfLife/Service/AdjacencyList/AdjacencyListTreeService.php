@@ -175,11 +175,11 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
     public function moveNode(int $id, int $newParentId): void
     {
         $query = <<<SQL
-UPDATE tree_of_life_adjacency_list
-SET
-  parent_id = :new_parent_id
-WHERE node_id = :id
-SQL;
+        UPDATE tree_of_life_adjacency_list
+        SET
+          parent_id = :new_parent_id
+        WHERE node_id = :id
+        SQL;
         $params = [
             ':id' => $id,
             ':new_parent_id' => $newParentId,
@@ -190,6 +190,9 @@ SQL;
 
     public function deleteSubTree(int $id): void
     {
+        // Удаляем рекурсивным запросом всё поддерево заданного узла.
+        // Удаляются только строки из tree_of_life_node, а строки из tree_of_life_adjacency_list будут удалены
+        //   за счёт ON DELETE CASCADE у внешнего ключа
         $query = <<<SQL
         WITH RECURSIVE cte AS
           (
