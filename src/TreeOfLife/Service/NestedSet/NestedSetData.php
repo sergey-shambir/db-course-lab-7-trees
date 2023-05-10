@@ -5,22 +5,22 @@ namespace App\TreeOfLife\Service\NestedSet;
 
 class NestedSetData
 {
-    private int $id;
+    private int $nodeId;
     private int $left;
     private int $right;
     private int $depth;
 
-    public function __construct(int $id, int $left, int $right, int $depth)
+    public function __construct(int $nodeId, int $left, int $right, int $depth)
     {
-        $this->id = $id;
+        $this->nodeId = $nodeId;
         $this->left = $left;
         $this->right = $right;
         $this->depth = $depth;
     }
 
-    public function getId(): int
+    public function getNodeId(): int
     {
-        return $this->id;
+        return $this->nodeId;
     }
 
     public function getLeft(): int

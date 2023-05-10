@@ -26,3 +26,13 @@
    - `data/create_database_and_user.sql`
    - `data/init_schema.sql`
 4. Запустить `vendor/bin/phpunit`
+
+## Запуск только определённых тестов
+
+```bash
+-- Запуск только тестов в классах, содержащих в названии AdjacencyList
+vendor/bin/phpunit --filter AdjacencyList
+
+-- Запуск только тестов в классах, содержащих в названии NestedSet
+vendor/bin/phpunit --filter NestedSet
+```
