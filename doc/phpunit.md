@@ -71,15 +71,11 @@ export PHP_IDE_CONFIG=serverName=localhost
 
 ```bash
 vendor/bin/phpunit
-```
 
-# Запуск только определённых тестов
-
-```bash
-# Запуск только тестов в классах, содержащих в названии AdjacencyList
+# Запуск только тест-кейсов из классов, содержащих в названии AdjacencyList
 vendor/bin/phpunit --filter AdjacencyList
 
-# Запуск только тестов в классах, содержащих в названии NestedSet
+# Запуск только тест-кейсов из классов, содержащих в названии NestedSet
 vendor/bin/phpunit --filter NestedSet
 ```
 

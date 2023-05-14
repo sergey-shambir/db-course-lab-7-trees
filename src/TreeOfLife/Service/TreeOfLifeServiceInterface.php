@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\TreeOfLife\Database;
+namespace App\TreeOfLife\Service;
 
 use App\TreeOfLife\Data\TreeOfLifeNodeData;
 use App\TreeOfLife\Model\TreeOfLifeNode;

@@ -4,12 +4,11 @@ declare(strict_types=1);
 namespace Tests\App\TreeOfLife\NestedSet;
 
 use App\TreeOfLife\Data\TreeOfLifeNodeData;
-use App\TreeOfLife\Database\TreeOfLifeServiceInterface;
 use App\TreeOfLife\IO\TreeOfLifeLoader;
 use App\TreeOfLife\Model\TreeOfLifeNode;
 use App\TreeOfLife\Model\TreeOfLifeNodeDataInterface;
-use App\TreeOfLife\Service\AdjacencyList\AdjacencyListTreeService;
 use App\TreeOfLife\Service\NestedSet\NestedSetTreeService;
+use App\TreeOfLife\Service\TreeOfLifeServiceInterface;
 use Tests\App\Common\AbstractDatabaseTestCase;
 
 class NestedSetTreeTest extends AbstractDatabaseTestCase
@@ -33,7 +32,7 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
     public function testSaveAndLoadTree(): void
     {
         // Arrange
-        $root = $this->loadTreeOfLife();
+        $root = $this->loadTreeOfLifeFromCsv();
         $this->service->saveTree($root);
 
         // Act
@@ -46,7 +45,7 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
     public function testGetDescendants(): void
     {
         // Arrange
-        $root = $this->loadTreeOfLife();
+        $root = $this->loadTreeOfLifeFromCsv();
         $this->service->saveTree($root);
 
         // Act
@@ -77,7 +76,7 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
     public function testGetAncestors(): void
     {
         // Arrange
-        $root = $this->loadTreeOfLife();
+        $root = $this->loadTreeOfLifeFromCsv();
         $this->service->saveTree($root);
 
         // Act
@@ -220,7 +219,7 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
         }
     }
 
-    private function loadTreeOfLife(): TreeOfLifeNode
+    private function loadTreeOfLifeFromCsv(): TreeOfLifeNode
     {
         $loader = new TreeOfLifeLoader();
         $loader->loadNodesCsv(self::NODES_CSV_PATH);

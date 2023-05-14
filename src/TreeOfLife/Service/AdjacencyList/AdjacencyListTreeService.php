@@ -5,9 +5,9 @@ namespace App\TreeOfLife\Service\AdjacencyList;
 
 use App\Common\Database\Connection;
 use App\TreeOfLife\Data\TreeOfLifeNodeData;
-use App\TreeOfLife\Database\TreeOfLifeServiceInterface;
 use App\TreeOfLife\Model\TreeOfLifeNode;
 use App\TreeOfLife\Model\TreeOfLifeNodeDataInterface;
+use App\TreeOfLife\Service\TreeOfLifeServiceInterface;
 
 class AdjacencyListTreeService implements TreeOfLifeServiceInterface
 {
