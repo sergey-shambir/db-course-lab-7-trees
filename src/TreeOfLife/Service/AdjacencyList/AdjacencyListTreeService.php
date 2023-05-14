@@ -161,19 +161,33 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
         /** @var TreeOfLifeNode[] $nodes */
         foreach (array_chunk($allNodes, self::INSERT_BATCH_SIZE) as $nodes)
         {
-            $this->insertIntoNodeTable($nodes);
-            $this->insertIntoTreeTable($this->transformToAdjacencyListData($nodes));
+            $this->doWithTransaction(function () use ($nodes) {
+                $this->insertIntoNodeTable($nodes);
+                $this->insertIntoTreeTable($this->transformToAdjacencyListData($nodes));
+            });
         }
     }
 
     public function addNode(TreeOfLifeNodeData $node, int $parentId): void
     {
-        $this->insertIntoNodeTable([$node]);
-        $this->insertIntoTreeTable([new AdjacencyListData($node->getId(), $parentId)]);
+        $this->doWithTransaction(function () use ($node, $parentId) {
+            $this->insertIntoNodeTable([$node]);
+            $this->insertIntoTreeTable([new AdjacencyListData($node->getId(), $parentId)]);
+        });
     }
 
     public function moveNode(int $id, int $newParentId): void
     {
+        // Проверяем, что новый родитель является потомком узла или тем же узлом.
+        $newParentPath = $this->getNodePath($newParentId);
+        foreach ($newParentPath as $newParentAncestor)
+        {
+            if ($newParentAncestor->getId() === $id)
+            {
+                throw new \InvalidArgumentException("Cannot move node $id into descendant node $newParentId");
+            }
+        }
+
         $query = <<<SQL
         UPDATE tree_of_life_adjacency_list
         SET
@@ -213,6 +227,32 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
           INNER JOIN cte ON tn.id = cte.node_id
         SQL;
         $this->connection->execute($query, [':id' => $id]);
+    }
+
+    /**
+     * @param callable $action
+     * @return void
+     */
+    private function doWithTransaction(callable $action): void
+    {
+        $this->connection->beginTransaction();
+        $commit = false;
+        try
+        {
+            $action();
+            $commit = true;
+        }
+        finally
+        {
+            if ($commit)
+            {
+                $this->connection->commit();
+            }
+            else
+            {
+                $this->connection->rollback();
+            }
+        }
     }
 
     /**
