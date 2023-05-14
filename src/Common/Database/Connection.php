@@ -10,6 +10,7 @@ final class Connection
     private string $password;
 
     private ?\PDO $handle = null;
+    private int $transactionLevel = 0;
 
     /**
      * @param string $dsn - DSN, например 'mysql:dbname=testdb;host=127.0.0.1'
@@ -62,17 +63,39 @@ final class Connection
 
     public function beginTransaction(): void
     {
-        $this->getConnection()->beginTransaction();
+        if ($this->transactionLevel === 0)
+        {
+            $this->getConnection()->beginTransaction();
+        }
+        ++$this->transactionLevel;
     }
 
     public function commit(): void
     {
-        $this->getConnection()->commit();
+        if ($this->transactionLevel < 0)
+        {
+            throw new \RuntimeException('Cannot call ' . __METHOD__ . ': there is no open transaction');
+        }
+
+        --$this->transactionLevel;
+        if ($this->transactionLevel === 0)
+        {
+            $this->getConnection()->commit();
+        }
     }
 
     public function rollback(): void
     {
-        $this->getConnection()->rollBack();
+        if ($this->transactionLevel < 0)
+        {
+            throw new \RuntimeException('Cannot call ' . __METHOD__ . ': there is no open transaction');
+        }
+
+        --$this->transactionLevel;
+        if ($this->transactionLevel === 0)
+        {
+            $this->getConnection()->rollBack();
+        }
     }
 
     /**

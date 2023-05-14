@@ -12,7 +12,9 @@
 
 1. Установить docker и docker-compose
 2. Запустить контейнеры по инструкции из файла `docs/docker.md`
-3. Открыть в MySQL Workbench и выполнить последовательно SQL запросы из файла `data/init_schema.sql`
+3. Открыть в MySQL Workbench и выполнить последовательно SQL запросы из файлов
+    - `data/init_schema.sql`
+    - `data/nested_set_routines.sql`
 4. Открыть сессию Bash в контейнере командой `docker/bin/tree-of-life-app-bash`
 5. Запустить `vendor/bin/phpunit`
 
@@ -25,6 +27,7 @@
 3. Открыть в MySQL Workbench и выполнить последовательно SQL запросы из двух файлов:
    - `data/create_database_and_user.sql`
    - `data/init_schema.sql`
+   - `data/nested_set_routines.sql`
 4. Запустить `vendor/bin/phpunit`
 
 ## Запуск только определённых тестов

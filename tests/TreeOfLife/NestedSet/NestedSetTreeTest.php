@@ -111,11 +111,10 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
         $this->assertTreeNode(new TreeOfLifeNodeData(2469, 'Arthropoda', false, 0), $parentNode);
     }
 
-    /* TODO: Uncomment
     public function testAddNode(): void
     {
         // Arrange
-        $root = $this->loadTreeOfLife();
+        $root = $this->loadTreeOfLifeFromCsv();
         $this->service->saveTree($root);
 
         // Act
@@ -135,10 +134,11 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
         $this->assertTreeNode(new TreeOfLifeNodeData(1, 'Life on Earth', false, 0), $parent);
     }
 
+    /* TODO: Uncomment
     public function testMoveNode(): void
     {
         // Arrange
-        $root = $this->loadTreeOfLife();
+        $root = $this->loadTreeOfLifeFromCsv();
         $this->service->saveTree($root);
 
         // Pre-assert
@@ -156,7 +156,7 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
     public function testDeleteSubTree(): void
     {
         // Arrange
-        $root = $this->loadTreeOfLife();
+        $root = $this->loadTreeOfLifeFromCsv();
         $this->service->saveTree($root);
 
         // Pre-assert

@@ -162,9 +162,27 @@ class NestedSetTreeService implements TreeOfLifeServiceInterface
         }
     }
 
+    /**
+     * @param TreeOfLifeNodeData $node
+     * @param int $parentId
+     * @return void
+     * @throws \Throwable
+     */
     public function addNode(TreeOfLifeNodeData $node, int $parentId): void
     {
-        // TODO: Implement addNode() method.
+        $this->insertIntoNodeTable([$node]);
+
+        $this->connection->beginTransaction();
+        try
+        {
+            $this->connection->execute('CALL tree_of_life_nested_set_add_node(?, ?)', [$node->getId(), $parentId]);
+            $this->connection->commit();
+        }
+        catch (\Throwable $exception)
+        {
+            $this->connection->rollback();
+            throw $exception;
+        }
     }
 
     public function moveNode(int $id, int $newParentId): void
