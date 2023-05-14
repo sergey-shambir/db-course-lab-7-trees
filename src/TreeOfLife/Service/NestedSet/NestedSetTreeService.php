@@ -170,11 +170,11 @@ class NestedSetTreeService implements TreeOfLifeServiceInterface
      */
     public function addNode(TreeOfLifeNodeData $node, int $parentId): void
     {
-        $this->insertIntoNodeTable([$node]);
-
+        // TODO: use transaction for each method with more than one SQL statement / query.
         $this->connection->beginTransaction();
         try
         {
+            $this->insertIntoNodeTable([$node]);
             $this->connection->execute('CALL tree_of_life_nested_set_add_node(?, ?)', [$node->getId(), $parentId]);
             $this->connection->commit();
         }
@@ -192,7 +192,19 @@ class NestedSetTreeService implements TreeOfLifeServiceInterface
 
     public function deleteSubTree(int $id): void
     {
-        // TODO: Implement deleteSubTree() method.
+        // TODO: use transaction for each method with more than one SQL statement / query.
+
+        $this->connection->beginTransaction();
+        try
+        {
+            $this->connection->execute('CALL tree_of_life_nested_set_delete_sub_tree(?)', [$id]);
+            $this->connection->commit();
+        }
+        catch (\Throwable $exception)
+        {
+            $this->connection->rollback();
+            throw $exception;
+        }
     }
 
     /**
