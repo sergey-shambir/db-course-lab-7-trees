@@ -170,19 +170,10 @@ class NestedSetTreeService implements TreeOfLifeServiceInterface
      */
     public function addNode(TreeOfLifeNodeData $node, int $parentId): void
     {
-        // TODO: use transaction for each method with more than one SQL statement / query.
-        $this->connection->beginTransaction();
-        try
-        {
+        $this->doWithTransaction(function () use ($node, $parentId) {
             $this->insertIntoNodeTable([$node]);
             $this->connection->execute('CALL tree_of_life_nested_set_add_node(?, ?)', [$node->getId(), $parentId]);
-            $this->connection->commit();
-        }
-        catch (\Throwable $exception)
-        {
-            $this->connection->rollback();
-            throw $exception;
-        }
+        });
     }
 
     public function moveNode(int $id, int $newParentId): void
@@ -192,18 +183,34 @@ class NestedSetTreeService implements TreeOfLifeServiceInterface
 
     public function deleteSubTree(int $id): void
     {
-        // TODO: use transaction for each method with more than one SQL statement / query.
+        $this->doWithTransaction(function () use ($id) {
+            $this->connection->execute('CALL tree_of_life_nested_set_delete_sub_tree(?)', [$id]);
+        });
+    }
 
+    /**
+     * @param callable $action
+     * @return void
+     */
+    private function doWithTransaction(callable $action): void
+    {
         $this->connection->beginTransaction();
+        $commit = false;
         try
         {
-            $this->connection->execute('CALL tree_of_life_nested_set_delete_sub_tree(?)', [$id]);
-            $this->connection->commit();
+            $action();
+            $commit = true;
         }
-        catch (\Throwable $exception)
+        finally
         {
-            $this->connection->rollback();
-            throw $exception;
+            if ($commit)
+            {
+                $this->connection->commit();
+            }
+            else
+            {
+                $this->connection->rollback();
+            }
         }
     }
 
