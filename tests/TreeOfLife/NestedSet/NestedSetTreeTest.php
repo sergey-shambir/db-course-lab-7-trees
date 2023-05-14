@@ -132,6 +132,8 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
 
         $parent = $this->service->getParentNode(80000);
         $this->assertTreeNode(new TreeOfLifeNodeData(1, 'Life on Earth', false, 0), $parent);
+
+        $this->service->validateNestedSetData();
     }
 
     /* TODO: Uncomment
@@ -151,6 +153,8 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
         // Assert
         $parent = $this->service->getParentNode(14697);
         $this->assertTreeNode(new TreeOfLifeNodeData(2537, 'Eurypterida', true, 0), $parent);
+
+        $this->service->validateNestedSetData();
     }
     */
 
@@ -187,6 +191,8 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
         $this->assertTreeNode(new TreeOfLifeNodeData(2536, 'Arachnida', false, 0), $children[0]);
         $this->assertTreeNode(new TreeOfLifeNodeData(2538, 'Xiphosura', false, 0), $children[1]);
         $this->assertTreeNode(new TreeOfLifeNodeData(2539, 'Pycnogonida', false, 0), $children[2]);
+
+        $this->service->validateNestedSetData();
     }
 
     private function assertTreeNode(TreeOfLifeNodeDataInterface $expected, TreeOfLifeNodeDataInterface $node): void

@@ -188,6 +188,51 @@ class NestedSetTreeService implements TreeOfLifeServiceInterface
         });
     }
 
+    public function validateNestedSetData(): void
+    {
+        $root = $this->getTree();
+        $expectedNestedSetData = self::buildNestedSetData($root);
+
+        $query = <<<SQL
+            SELECT node_id, lft, rgt, depth
+            FROM tree_of_life_nested_set
+            ORDER BY lft
+        SQL;
+        $rows = $this->connection->execute($query)->fetchAll(\PDO::FETCH_ASSOC);
+        $nestedSetData = array_map($this->hydrateNestedSetData(...), $rows);
+
+        /**
+         * @var NestedSetData[] $nestedSetDataMap - отображает ID узла на данные Nested Set.
+         */
+        $nestedSetDataMap = array_combine(
+            array_map(static fn(NestedSetData $d) => $d->getNodeId(), $nestedSetData),
+            $nestedSetData
+        );
+
+        $errors = [];
+        foreach ($expectedNestedSetData as $expected)
+        {
+            $nodeId = $expected->getNodeId();
+            $got = $nestedSetDataMap[$nodeId] ?? throw new \LogicException("Cannot find Nested Set node {$nodeId}");
+            if ($got->getLeft() !== $expected->getLeft())
+            {
+                $errors[] = "Invalid lft={$got->getLeft()} in node $nodeId, expected lft={$expected->getLeft()}";
+            }
+            if ($got->getRight() !== $expected->getRight())
+            {
+                $errors[] = "Invalid rgt={$got->getRight()} in node $nodeId, expected rgt={$expected->getRight()}";
+            }
+            if ($got->getDepth() !== $expected->getDepth())
+            {
+                $errors[] = "Invalid depth={$got->getDepth()} in node $nodeId, expected depth={$expected->getDepth()}";
+            }
+        }
+        if (count($errors) > 0)
+        {
+            throw new \RuntimeException("Inconsistent Nested Set data:\n" . implode("\n", $errors));
+        }
+    }
+
     /**
      * @param callable $action
      * @return void
@@ -395,6 +440,22 @@ class NestedSetTreeService implements TreeOfLifeServiceInterface
             $row['name'],
             (bool)$row['extinct'],
             (int)$row['confidence']
+        );
+    }
+
+    /**
+     * Преобразует один результат SQL-запроса в объект, представляющий данные узла в Nested Set.
+     *
+     * @param array<string,string|null> $row
+     * @return NestedSetData
+     */
+    private static function hydrateNestedSetData(array $row): NestedSetData
+    {
+        return new NestedSetData(
+            (int)$row['node_id'],
+            (int)$row['lft'],
+            (int)$row['rgt'],
+            (int)$row['depth']
         );
     }
 }
