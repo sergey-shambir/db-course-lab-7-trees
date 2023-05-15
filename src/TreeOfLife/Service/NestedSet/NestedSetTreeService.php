@@ -176,9 +176,11 @@ class NestedSetTreeService implements TreeOfLifeServiceInterface
         });
     }
 
-    public function moveNode(int $id, int $newParentId): void
+    public function moveSubTree(int $id, int $newParentId): void
     {
-        // TODO: Implement moveNode() method.
+        $this->doWithTransaction(function () use ($id, $newParentId) {
+            $this->connection->execute('CALL tree_of_life_nested_set_delete_move_node(?, ?)', [$id, $newParentId]);
+        });
     }
 
     public function deleteSubTree(int $id): void

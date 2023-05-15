@@ -176,7 +176,7 @@ class AdjacencyListTreeService implements TreeOfLifeServiceInterface
         });
     }
 
-    public function moveNode(int $id, int $newParentId): void
+    public function moveSubTree(int $id, int $newParentId): void
     {
         // Проверяем, что новый родитель является потомком узла или тем же узлом.
         $newParentPath = $this->getNodePath($newParentId);

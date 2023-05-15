@@ -1,2 +1,3 @@
 DROP PROCEDURE tree_of_life_nested_set_add_node;
 DROP PROCEDURE tree_of_life_nested_set_delete_sub_tree;
+DROP PROCEDURE tree_of_life_nested_set_delete_move_node;

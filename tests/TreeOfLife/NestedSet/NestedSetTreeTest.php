@@ -136,7 +136,6 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
         $this->service->validateNestedSetData();
     }
 
-    /* TODO: Uncomment
     public function testMoveNode(): void
     {
         // Arrange
@@ -148,7 +147,7 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
         $this->assertTreeNode(new TreeOfLifeNodeData(14695, 'none', false, 0), $parent);
 
         // Act - move Callipallenidae to Eurypterida
-        $this->service->moveNode(14697, 2537);
+        $this->service->moveSubTree(14697, 2537);
 
         // Assert
         $parent = $this->service->getParentNode(14697);
@@ -156,7 +155,6 @@ class NestedSetTreeTest extends AbstractDatabaseTestCase
 
         $this->service->validateNestedSetData();
     }
-    */
 
     public function testDeleteSubTree(): void
     {

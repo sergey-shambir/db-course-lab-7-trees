@@ -75,14 +75,14 @@ interface TreeOfLifeServiceInterface
 
     /**
      * Перемещает узел к новому родителю.
-     * При попытке сделать узел дочерним для самого себя или своих потомков бросается InvalidArgumentException.
+     * При попытке сделать узел дочерним для самого себя или своих потомков бросается исключение.
      *
      * @param int $id
      * @param int $newParentId
      * @return void
      * @throws \InvalidArgumentException
      */
-    public function moveNode(int $id, int $newParentId): void;
+    public function moveSubTree(int $id, int $newParentId): void;
 
     /**
      * Удаляет узел и всех его потомков.
